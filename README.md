@@ -23,9 +23,10 @@ This project showcases **data ingestion**, **modeling**, and **automation** usin
 | 💸 **Expected Value (EV)** | Computes the expected dollar value of a bet given the model’s forecast. |
 | 🔁 **Auto Refresh Loop** | Updates odds and model predictions every 15 minutes automatically. |
 | 🏀 **Multi-League Support** | NBA and NFL currently implemented (extendable to MLB, NHL, etc.). |
-| 🎨 **Rich CLI Output** | Beautiful terminal tables with color-coded value indicators. |
+| 🎨 **Rich CLI Output** | Excellent terminal tables with color-coded value indicators. |
 
 ---
 
 ## 🧠 System Architecture
+
 
