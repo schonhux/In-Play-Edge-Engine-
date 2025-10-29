@@ -52,12 +52,8 @@ This project showcases **data ingestion**, **modeling**, and **automation** usin
                    ▼
         ┌─────────────────────┐
         │ scripts/demo_bets   │  → Detect top value bets (CLI)
-        └──────────┬──────────┘
-                   │
-                   ▼
-        ┌─────────────────────┐
-        │ scripts/auto_refresh│  → Refresh every 15 min
-        └─────────────────────┘
+        └──────────--─────────┘
+
 
 
 
