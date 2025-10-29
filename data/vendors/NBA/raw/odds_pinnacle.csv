@@ -1,0 +1,10 @@
+ts_utc,game_id,book,runner,price_decimal
+2025-10-04 00:35:00Z,G001,pinnacle,HOME,1.85
+2025-10-04 00:35:00Z,G001,pinnacle,AWAY,2.10
+2025-10-04 00:35:00Z,G001,draftkings,HOME,1.88
+2025-10-04 00:35:00Z,G001,draftkings,AWAY,2.05
+
+2025-10-04 00:35:00Z,G002,pinnacle,HOME,1.95
+2025-10-04 00:35:00Z,G002,pinnacle,AWAY,1.95
+2025-10-04 00:35:00Z,G002,draftkings,HOME,2.02
+2025-10-04 00:35:00Z,G002,draftkings,AWAY,1.90
