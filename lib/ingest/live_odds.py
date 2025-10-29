@@ -1,57 +1,65 @@
-# lib/ingest/live_odds.py
-import requests, polars as pl, os, json
+import os
+import requests
+import polars as pl
+from lib.constants.nba_teams import NBA_TEAMS
+from lib.utils.team_name_map import normalize_name
 
-API_KEY = os.getenv("ODDS_API_KEY")
+ODDS_API_KEY = os.getenv("ODDS_API_KEY")
+if not ODDS_API_KEY:
+    raise EnvironmentError("❌ Missing ODDS_API_KEY. Run: export ODDS_API_KEY='your_api_key_here'")
 
 def fetch_live_odds():
-    if not API_KEY:
-        raise ValueError("❌ Missing ODDS_API_KEY environment variable")
+    print("[live_odds] 🔄 Fetching DraftKings/FanDuel NBA odds...")
 
-    url = (
-        f"https://api.the-odds-api.com/v4/sports/basketball_nba/odds/"
-        f"?regions=us&markets=h2h&apiKey={API_KEY}"
-    )
+    url = "https://api.the-odds-api.com/v4/sports/basketball_nba/odds"
+    params = {
+        "apiKey": ODDS_API_KEY,
+        "regions": "us",
+        "markets": "h2h",
+        "oddsFormat": "decimal",
+    }
 
-    print(f"[live_odds] Requesting odds from TheOddsAPI...")
-    r = requests.get(url)
+    resp = requests.get(url, params=params, timeout=15)
+    if resp.status_code != 200:
+        raise ConnectionError(f"❌ API Error {resp.status_code}: {resp.text}")
 
-    try:
-        data = r.json()
-    except json.JSONDecodeError:
-        print("❌ API did not return valid JSON. Raw response:")
-        print(r.text)
-        return
-
-    # The API sometimes returns an error dict instead of list of games
-    if isinstance(data, dict) and "message" in data:
-        print("❌ API Error:", data["message"])
-        return
-
-    if not isinstance(data, list):
-        print("❌ Unexpected data format:", type(data), data)
-        return
-
+    data = resp.json()
     rows = []
+
     for g in data:
-        home = g["home_team"]
-        away = g["away_team"]
+        home, away = g.get("home_team"), g.get("away_team")
+        if not home or not away:
+            continue
+        home, away = normalize_name(home), normalize_name(away)
+        if home not in NBA_TEAMS or away not in NBA_TEAMS:
+            continue
+
         for book in g.get("bookmakers", []):
             if book["key"] in ["draftkings", "fanduel"]:
                 markets = book.get("markets", [])
-                if not markets: continue
-                outcomes = markets[0]["outcomes"]
-                h_odds = next((o["price"] for o in outcomes if o["name"] == home), None)
-                a_odds = next((o["price"] for o in outcomes if o["name"] == away), None)
-                rows.append((home, away, book["key"], h_odds, a_odds))
+                if not markets:
+                    continue
+                outcomes = markets[0].get("outcomes", [])
+                if len(outcomes) != 2:
+                    continue
 
-    if not rows:
-        print("⚠️ No odds data returned — possibly offseason or no games scheduled.")
-        return
+                # handle odds extraction robustly
+                home_price = next((o["price"] for o in outcomes if o["name"] == home), None)
+                away_price = next((o["price"] for o in outcomes if o["name"] == away), None)
+                if home_price is None or away_price is None:
+                    continue
 
-    df = pl.DataFrame(rows, schema=["home_team","away_team","book","home_odds","away_odds"])
+                rows.append({
+                    "home_team": home,
+                    "away_team": away,
+                    "book": book["key"],
+                    "home_odds": float(home_price),
+                    "away_odds": float(away_price),
+                })
+
+    df = pl.DataFrame(rows)
     df.write_parquet("data/warehouse/NBA/live_odds.parquet")
-    print(f"[live_odds] ✅ wrote live_odds.parquet rows={len(df)}")
-    print(df.head())
+    print(f"✅ Saved {len(df)} NBA odds → data/warehouse/NBA/live_odds.parquet")
 
 if __name__ == "__main__":
     fetch_live_odds()
