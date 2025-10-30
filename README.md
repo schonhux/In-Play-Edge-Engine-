@@ -1,4 +1,4 @@
-# 🧠 In-Play Edge Engine  
+# Real-Time Sports Prediction Engine 
 **ML-Driven Sports Betting Value Detection (NBA + NFL)**  
 
 
@@ -53,6 +53,7 @@ This project showcases **data ingestion**, **modeling**, and **automation** usin
         ┌─────────────────────┐
         │ scripts/demo_bets   │  → Detect top value bets (CLI)
         └──────────--─────────┘
+
 
 
 
